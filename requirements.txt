@@ -7,3 +7,4 @@ dvc
 pytest
 flake8
 joblib
+pytest-cov
