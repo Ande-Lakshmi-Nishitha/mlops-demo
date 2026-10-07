@@ -1,0 +1,53 @@
+name: ML CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Lint
+        run: flake8 src tests --max-line-length=100
+
+      - name: Data tests
+        run: pytest tests/test_data.py -v
+
+      # Reproduce the pipeline: prepare -> train -> evaluate.
+      # evaluate.py exits non-zero if accuracy < params.yaml evaluate.min_accuracy
+      - name: Run DVC pipeline (with quality gate)
+        run: dvc repro
+
+      - name: Model tests
+        run: pytest tests/test_model.py -v
+
+      - name: Show metrics
+        run: |
+          dvc metrics show
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git fetch origin main --depth=1
+            dvc metrics diff origin/main || true
+          fi
+
+      - name: Upload model and MLflow runs
+        uses: actions/upload-artifact@v4
+        with:
+          name: model-and-mlruns
+          path: |
+            models/
+            mlruns/
+            mlflow.db
+            metrics/

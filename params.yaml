@@ -1,0 +1,13 @@
+prepare:
+  test_size: 0.2
+  seed: 42
+
+train:
+  hidden_layers: [64, 32]
+  learning_rate: 0.001
+  max_iter: 300
+  seed: 42
+
+# CI quality gate: pipeline fails if test accuracy drops below this
+evaluate:
+  min_accuracy: 0.90

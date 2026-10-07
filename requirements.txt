@@ -1,0 +1,9 @@
+numpy
+pandas
+scikit-learn
+pyyaml
+mlflow
+dvc
+pytest
+flake8
+joblib
